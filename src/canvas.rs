@@ -1,31 +1,39 @@
 use crate::color::*;
 
 #[derive(Clone, Debug)]
-struct Canvas {
+pub struct Canvas {
     width: usize,
     height: usize,
     pixels: Vec<Color>,
 }
 
 impl Canvas {
-    fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         Self::new_with_color(width, height, Color::default())
     }
 
-    fn new_with_color(width: usize, height: usize, c: Color) -> Self {
+    pub fn new_with_color(width: usize, height: usize, c: Color) -> Self {
         let pixels: Vec<Color> = vec![c; width * height];
         Canvas { width, height, pixels }
     }
 
-    fn pixel_at(&self, x: i32, y: i32) -> Color {
+    pub fn get_width(&self) -> i32 {
+        self.width as i32
+    }
+
+    pub fn get_height(&self) -> i32 {
+        self.height as i32
+    }
+
+    pub fn pixel_at(&self, x: i32, y: i32) -> Color {
         self.pixels[y as usize * self.width + x as usize]
     }
 
-    fn write_pixel(&mut self, x: i32, y: i32, c: Color) {
+    pub fn write_pixel(&mut self, x: i32, y: i32, c: Color) {
         self.pixels[y as usize * self.width + x as usize] = c;
     }
 
-    fn to_ppm(&self) -> String {
+    pub fn to_ppm(&self) -> String {
         let mut s = WrappingStringBuilder::new(70);
 
         s.append_line("P3");
@@ -47,6 +55,10 @@ impl Canvas {
         }
 
         return s.into_string();
+    }
+
+    pub fn save(&self, file: &str) -> std::io::Result<()> {
+        std::fs::write(file, self.to_ppm())
     }
 }
 

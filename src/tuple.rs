@@ -1,14 +1,14 @@
 use float_cmp::approx_eq;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Tuple {
+pub struct T4 {
     pub x: f32,
     pub y: f32,
     pub z: f32,
     pub w: f32,
 }
 
-impl PartialEq for Tuple {
+impl PartialEq for T4 {
     fn eq(&self, other: &Self) -> bool {
         approx_eq!(f32, self.x, other.x, epsilon = 0.00001)
         && approx_eq!(f32, self.y, other.y, epsilon = 0.00001)
@@ -17,9 +17,9 @@ impl PartialEq for Tuple {
     }
 }
 
-impl Eq for Tuple {}
+impl Eq for T4 {}
 
-impl std::ops::Add for Tuple {
+impl std::ops::Add for T4 {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -32,7 +32,7 @@ impl std::ops::Add for Tuple {
     }
 }
 
-impl std::ops::Sub for Tuple {
+impl std::ops::Sub for T4 {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
@@ -45,7 +45,7 @@ impl std::ops::Sub for Tuple {
     }
 }
 
-impl std::ops::Mul<f32> for Tuple {
+impl std::ops::Mul<f32> for T4 {
     type Output = Self;
 
     fn mul(self, k: f32) -> Self {
@@ -58,12 +58,12 @@ impl std::ops::Mul<f32> for Tuple {
     }
 }
 
-impl std::ops::Mul<Tuple> for f32 {
-    type Output = Tuple;
-    fn mul(self, t: Tuple) -> Self::Output { t * self }
+impl std::ops::Mul<T4> for f32 {
+    type Output = T4;
+    fn mul(self, t: T4) -> Self::Output { t * self }
 }
 
-impl std::ops::Div<f32> for Tuple {
+impl std::ops::Div<f32> for T4 {
     type Output = Self;
 
     fn div(self, k: f32) -> Self {
@@ -76,7 +76,7 @@ impl std::ops::Div<f32> for Tuple {
     }
 }
 
-impl std::ops::Neg for Tuple {
+impl std::ops::Neg for T4 {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -84,7 +84,7 @@ impl std::ops::Neg for Tuple {
     }
 }
 
-impl Tuple {
+impl T4 {
     pub fn is_point(self) -> bool {
         approx_eq!(f32, self.w, 1f32, epsilon = 0.00001)
     }
@@ -100,7 +100,7 @@ impl Tuple {
     pub fn normalize(self) -> Self {
         let m = self.mag();
 
-        Tuple {
+        T4 {
             x: self.x / m,
             y: self.y / m,
             z: self.z / m,
@@ -119,16 +119,16 @@ impl Tuple {
     }
 }
 
-pub fn tuple(x: f32, y: f32, z: f32, w: f32, ) -> Tuple {
-    Tuple { x, y, z, w, }
+pub fn tuple(x: f32, y: f32, z: f32, w: f32, ) -> T4 {
+    T4 { x, y, z, w, }
 }
 
-pub fn point(x: f32, y: f32, z: f32,) -> Tuple {
-    Tuple { x, y, z, w: 1.0}
+pub fn point(x: f32, y: f32, z: f32,) -> T4 {
+    T4 { x, y, z, w: 1.0}
 }
 
-pub fn vector(x: f32, y: f32, z: f32,) -> Tuple {
-    Tuple { x, y, z, w: 0.0}
+pub fn vector(x: f32, y: f32, z: f32,) -> T4 {
+    T4 { x, y, z, w: 0.0}
 }
 
 #[cfg(test)]
