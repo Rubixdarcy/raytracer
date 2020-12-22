@@ -36,7 +36,7 @@ fn main() {
         p = e.tick(p);
     }
 
-    c.save("out.ppm");
+    c.save("out.ppm").unwrap();
     println!("Saved to out.ppm");
 
 }
