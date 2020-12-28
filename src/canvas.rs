@@ -30,7 +30,9 @@ impl Canvas {
     }
 
     pub fn write_pixel(&mut self, x: i32, y: i32, c: Color) {
-        self.pixels[y as usize * self.width + x as usize] = c;
+        let i = y as usize * self.width + x as usize;
+        if i >= self.pixels.len() { return; }
+        self.pixels[i] = c;
     }
 
     pub fn to_ppm(&self) -> String {
