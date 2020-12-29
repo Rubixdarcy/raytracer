@@ -6,6 +6,8 @@ pub mod transformations;
 pub mod ray;
 pub mod sphere;
 pub mod intersection;
+pub mod light;
+pub mod material;
 
 pub mod prelude {
     pub use crate::{color_rgb};
@@ -17,4 +19,6 @@ pub mod prelude {
     pub use crate::ray::{Ray};
     pub use crate::sphere::{Sphere};
     pub use crate::intersection::{Intersection, Intersections};
+    pub use crate::light::{Light};
+    pub use crate::material::{Material};
 }

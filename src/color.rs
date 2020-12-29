@@ -7,6 +7,13 @@ pub struct Color {
     pub blue: f32,
 }
 
+#[macro_export]
+macro_rules! color_rgb {
+    ($r:expr, $g:expr, $b:expr) => {
+        $crate::color::Color { red: $r, green: $g, blue: $b }
+    }
+}
+
 impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
         approx_eq!(f32, self.red, other.red, epsilon = 0.00001)
@@ -82,17 +89,17 @@ impl std::ops::Div<f32> for Color {
     }
 }
 
+impl Color {
+    pub const BLACK: Self = color_rgb!(0.0, 0.0, 0.0);
+    pub const RED: Self = color_rgb!(1.0, 0.0, 0.0);
+    pub const GREEN: Self = color_rgb!(0.0, 1.0, 0.0);
+    pub const BLUE: Self = color_rgb!(0.0, 0.0, 1.0);
+    pub const WHITE: Self = color_rgb!(1.0, 1.0, 1.0);
+}
+
 pub fn color(red: f32, green: f32, blue: f32) -> Color {
     Color { red, green, blue }
 }
-
-#[macro_export]
-macro_rules! color_rgb {
-    ($r:expr, $g:expr, $b:expr) => {
-        $crate::color::Color { red: $r, green: $g, blue: $b }
-    }
-}
-
 
 #[cfg(test)]
 mod test {

@@ -1,19 +1,21 @@
 use crate::prelude::*;
 
-#[derive(Clone, Debug, Copy, PartialEq, Eq)]
+#[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Sphere {
     pub transform: M4,
+    pub material: Material,
 }
 
 impl Default for Sphere {
     fn default() -> Self {
-        Sphere { transform: M4::IDENTITY }
+        Sphere { transform: M4::IDENTITY,
+                 material: Material::default() }
     }
 }
 
 impl Sphere {
     pub fn from_transform(transform: M4) -> Self {
-        Sphere { transform }
+        Self { transform, ..Self::default() }
     }
 
     pub fn intersect(&self, ray: Ray) -> Intersections {
@@ -34,6 +36,20 @@ impl Sphere {
             Intersection::new((-b - sqrt) / (2.0 * a), self),
             Intersection::new((-b + sqrt) / (2.0 * a), self),
         ]);
+    }
+
+    pub fn normal_at(&self, p: T4) -> T4 {
+        let inv = self.transform.inverse();
+        let object_point = inv * p;
+        let object_normal = object_point - point(0.0, 0.0, 0.0);
+
+        // Technically we should find the world normal by finding
+        // the transpose inverse of a 3x3 matrix, but instead we
+        // use the 4x4 and then manually set w to 0.
+        let mut world_normal = inv.transpose() * object_normal;
+        world_normal.w = 0.0;
+
+        return world_normal.normalize();
     }
 }
 
@@ -129,48 +145,40 @@ mod test {
             Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)));
         assert_eq!(xs.len(), 0);
     }
+
+    #[test]
+    fn sphere_normal() {
+        let s = Sphere::default();
+        let s3_o3 = 1f32 / 3f32.sqrt();
+        assert_eq!(s.normal_at(point(1.0, 0.0, 0.0)), vector(1.0, 0.0, 0.0));
+        assert_eq!(s.normal_at(point(0.0, 1.0, 0.0)), vector(0.0, 1.0, 0.0));
+        assert_eq!(s.normal_at(point(0.0, 0.0, 1.0)), vector(0.0, 0.0, 1.0));
+        let n = s.normal_at(point(s3_o3, s3_o3, s3_o3));
+        assert_eq!(n, vector(s3_o3, s3_o3, s3_o3));
+        assert_eq!(n, n.normalize());
+    }
+
+    #[test]
+    fn sphere_normal_translation() {
+        let s = Sphere::from_transform(translation(0.0, 1.0, 0.0));
+        assert_eq!(s.normal_at(point(0.0, 1.70711, -0.70711)),
+                   vector(0.0, 0.70711, -0.70711));
+    }
+
+    #[test]
+    fn sphere_normal_transformed() {
+        use std::f32::consts::PI;
+        use std::f32::consts::FRAC_1_SQRT_2 as S2O2;
+
+        let m = scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0);
+        let s = Sphere::from_transform(m);
+        assert_eq!(s.normal_at(point(0.0, S2O2, -S2O2)),
+                   vector(0.0, 0.97014, -0.24254));
+    }
 }
 
 /*
 Feature: Spheres
-
-Scenario: The normal on a sphere at a point on the x axis
-  Given s â† sphere()
-  When n â† normal_at(s, point(1, 0, 0))
-  Then n = vector(1, 0, 0)
-
-Scenario: The normal on a sphere at a point on the y axis
-  Given s â† sphere()
-  When n â† normal_at(s, point(0, 1, 0))
-  Then n = vector(0, 1, 0)
-
-Scenario: The normal on a sphere at a point on the z axis
-  Given s â† sphere()
-  When n â† normal_at(s, point(0, 0, 1))
-  Then n = vector(0, 0, 1)
-
-Scenario: The normal on a sphere at a nonaxial point
-  Given s â† sphere()
-  When n â† normal_at(s, point(âˆš3/3, âˆš3/3, âˆš3/3))
-  Then n = vector(âˆš3/3, âˆš3/3, âˆš3/3)
-
-Scenario: The normal is a normalized vector
-  Given s â† sphere()
-  When n â† normal_at(s, point(âˆš3/3, âˆš3/3, âˆš3/3))
-  Then n = normalize(n)
-
-Scenario: Computing the normal on a translated sphere
-  Given s â† sphere()
-    And set_transform(s, translation(0, 1, 0))
-  When n â† normal_at(s, point(0, 1.70711, -0.70711))
-  Then n = vector(0, 0.70711, -0.70711)
-
-Scenario: Computing the normal on a transformed sphere
-  Given s â† sphere()
-    And m â† scaling(1, 0.5, 1) * rotation_z(Ï€/5)
-    And set_transform(s, m)
-  When n â† normal_at(s, point(0, âˆš2/2, -âˆš2/2))
-  Then n = vector(0, 0.97014, -0.24254)
 
 Scenario: A sphere has a default material
   Given s â† sphere()

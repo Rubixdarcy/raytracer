@@ -1,6 +1,6 @@
 use float_cmp::approx_eq;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct T4 {
     pub x: f32,
     pub y: f32,
@@ -123,6 +123,10 @@ impl T4 {
         vector(self.y * other.z - self.z * other.y,
                self.z * other.x - self.x * other.z,
                self.x * other.y - self.y * other.x)
+    }
+
+    pub fn reflect(self, normal: Self) -> Self {
+        self - normal * 2.0 * (self * normal)
     }
 }
 
@@ -268,5 +272,14 @@ mod test {
     #[test]
     fn vector_cross() {
         assert_eq!(vector(1.0, 2.0, 3.0).cross(vector(2.0, 3.0, 4.0)), vector(-1.0, 2.0, -1.0))
+    }
+
+    #[test]
+    fn vector_reflect() {
+        use std::f32::consts::FRAC_1_SQRT_2 as S2O2;
+        assert_eq!(vector(1.0, -1.0, 0.0).reflect(vector(0.0, 1.0, 0.0)),
+                   vector(1.0, 1.0, 0.0));
+        assert_eq!(vector(0.0, -1.0, 0.0).reflect(vector(S2O2, S2O2, 0.0)),
+                   vector(1.0, 0.0, 0.0));
     }
 }
