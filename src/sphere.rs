@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub struct Sphere {
-    transform: M4,
+    pub transform: M4,
 }
 
 impl Default for Sphere {
