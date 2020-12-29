@@ -14,6 +14,10 @@ impl Default for Sphere {
 }
 
 impl Sphere {
+    pub fn new(transform: M4, material: Material) -> Self {
+        Self { transform, material }
+    }
+
     pub fn from_transform(transform: M4) -> Self {
         Self { transform, ..Self::default() }
     }

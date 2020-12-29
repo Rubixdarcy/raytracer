@@ -9,7 +9,7 @@ const CANVAS_HEIGHT: usize = 100;
 const CANVAS_Z: f32 = 60.0;
 const LIGHT_Z: f32  = -2.0;
 
-const SPHERE_COLOR: Color = color_rgb!(0.0, 1.0, 0.0);
+const SPHERE_COLOR: Color = color_rgb!(1.0, 0.2, 1.0);
 
 fn main() {
     let mut canvas = Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
