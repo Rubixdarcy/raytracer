@@ -2,7 +2,7 @@ use raytracer::prelude::*;
 
 const CANVAS_SIZE: usize = 200;
 const CLOCK_CANVAS_RATIO: f32 = 0.8;
-const CLOCK_COLOR: Color = Color { red: 0.0, green: 1.0, blue: 0.0 };
+const CLOCK_COLOR: Color = color_rgb!(0.0, 1.0, 0.0);
 
 fn main() {
     let mut c = Canvas::new(CANVAS_SIZE, CANVAS_SIZE);

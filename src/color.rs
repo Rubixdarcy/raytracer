@@ -86,6 +86,13 @@ pub fn color(red: f32, green: f32, blue: f32) -> Color {
     Color { red, green, blue }
 }
 
+#[macro_export]
+macro_rules! color_rgb {
+    ($r:expr, $g:expr, $b:expr) => {
+        $crate::color::Color { red: $r, green: $g, blue: $b }
+    }
+}
+
 
 #[cfg(test)]
 mod test {

@@ -45,6 +45,13 @@ impl std::ops::Sub for T4 {
     }
 }
 
+impl std::ops::Mul for T4 {
+    type Output = f32;
+    fn mul(self, other: Self) -> f32 {
+        self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
+    }
+}
+
 impl std::ops::Mul<f32> for T4 {
     type Output = Self;
 

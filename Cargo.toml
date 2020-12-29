@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 float-cmp = "0.8.0"
+smallvec = "1.5.1"
 
 [dev-dependencies]
 nom = "6"
