@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::iter;
 
 #[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Sphere {
@@ -22,7 +23,7 @@ impl Sphere {
         Self { transform, ..Self::default() }
     }
 
-    pub fn intersect(&self, ray: Ray) -> Intersections {
+    pub fn intersect<'a>(&'a self, ray: Ray, is: &mut Intersections<'a>) {
         let ray = self.transform.inverse() * ray;
         let sphere_to_ray = ray.origin - point(0.0, 0.0, 0.0);
 
@@ -32,14 +33,14 @@ impl Sphere {
 
         let discriminant = b * b - 4.0 * a * c;
 
-        if discriminant < 0.0 { return Intersections::empty(); }
+        if discriminant < 0.0 { return; }
 
         let sqrt = discriminant.sqrt();
 
-        return Intersections::new(&[
+        is.extend([
             Intersection::new((-b - sqrt) / (2.0 * a), self),
             Intersection::new((-b + sqrt) / (2.0 * a), self),
-        ]);
+        ].iter().copied());
     }
 
     pub fn normal_at(&self, p: T4) -> T4 {
@@ -64,8 +65,9 @@ mod test {
     #[test]
     fn ray_intersection_two_points() {
         let s = Sphere::default();
-        let xs = s.intersect(
-            Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 4.0);
         assert_eq!(xs[1].t, 6.0);
@@ -74,8 +76,9 @@ mod test {
     #[test]
     fn ray_intersection_tangent() {
         let s = Sphere::default();
-        let xs = s.intersect(
-            Ray::new(point(0.0, 1.0, -5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 1.0, -5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 5.0);
         assert_eq!(xs[1].t, 5.0);
@@ -84,16 +87,18 @@ mod test {
     #[test]
     fn ray_intersection_miss() {
         let s = Sphere::default();
-        let xs = s.intersect(
-            Ray::new(point(0.0, 2.0, -5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 2.0, -5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 0);
     }
 
     #[test]
     fn ray_intersection_origin_inside() {
         let s = Sphere::default();
-        let xs = s.intersect(
-            Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, -1.0);
         assert_eq!(xs[1].t, 1.0);
@@ -102,8 +107,9 @@ mod test {
     #[test]
     fn ray_intersection_sphere_behind() {
         let s = Sphere::default();
-        let xs = s.intersect(
-            Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, -6.0);
         assert_eq!(xs[1].t, -4.0);
@@ -112,8 +118,9 @@ mod test {
     #[test]
     fn intersection_sets_object() {
         let s = Sphere::default();
-        let xs = s.intersect(
-            Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 2);
         assert_eq!(*xs[0].object, s);
         assert_eq!(*xs[1].object, s);
@@ -135,8 +142,9 @@ mod test {
     #[test]
     fn ray_intersection_scaling() {
         let s = Sphere::from_transform(scaling(2.0, 2.0, 2.0));
-        let xs = s.intersect(
-            Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 3.0);
         assert_eq!(xs[1].t, 7.0);
@@ -145,8 +153,9 @@ mod test {
     #[test]
     fn ray_intersection_transloation() {
         let s = Sphere::from_transform(translation(5.0, 0.0, 0.0));
-        let xs = s.intersect(
-            Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)));
+        let mut xs = Intersections::empty();
+        s.intersect(
+            Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)), &mut xs);
         assert_eq!(xs.len(), 0);
     }
 

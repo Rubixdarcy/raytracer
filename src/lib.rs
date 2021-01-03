@@ -8,6 +8,7 @@ pub mod sphere;
 pub mod intersection;
 pub mod light;
 pub mod material;
+pub mod world;
 
 pub mod prelude {
     pub use crate::{color_rgb};

@@ -30,13 +30,16 @@ fn main() {
     );
     let light = Light::new(point(-10.0, 10.0, -10.0), Color::WHITE);
 
+    let mut xs = Intersections::empty();
     for row in 0..CANVAS_HEIGHT {
         for col in 0..CANVAS_WIDTH {
+            xs.clear();
             let pixel_pos = pixel_transform * point(col as f32, row as f32, 0.0);
             let ray = Ray::new(ray_origin,
                                (pixel_pos - ray_origin).normalize());
 
-            if let Some(intersection) = sphere.intersect(ray).hit() {
+            sphere.intersect(ray, &mut xs);
+            if let Some(intersection) = xs.hit() {
                 let hit_pos = ray.at(intersection.t);
                 let eyev = -ray.direction;
                 let normalv = sphere.normal_at(hit_pos);

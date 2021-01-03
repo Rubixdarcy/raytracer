@@ -25,12 +25,15 @@ fn main() {
     let sphere = Sphere::from_transform(
         rotation_z(std::f32::consts::FRAC_PI_4) * scaling(1.3, 1.0, 1.0));
 
+    let mut xs = Intersections::empty();
     for row in 0..CANVAS_HEIGHT {
         for col in 0..CANVAS_WIDTH {
+            xs.clear();
             let pixel_pos = pixel_transform * point(col as f32, row as f32, 0.0);
             let ray = Ray::new(light_pos, pixel_pos - light_pos);
 
-            if sphere.intersect(ray).len() > 0 {
+            sphere.intersect(ray, &mut xs);
+            if xs.len() > 0 {
                 canvas.write_pixel(row as i32, col as i32, SPHERE_COLOR);
             }
         }

@@ -30,6 +30,12 @@ impl<'a> std::ops::Index<usize> for Intersections<'a> {
     }
 }
 
+impl<'a> std::iter::Extend<Intersection<'a>> for Intersections<'a> {
+    fn extend<T: IntoIterator<Item = Intersection<'a>>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
 impl<'a> Intersections<'a> {
     pub fn empty() -> Self { Self(smallvec![]) }
 
@@ -43,6 +49,10 @@ impl<'a> Intersections<'a> {
 
     pub fn hit(&self) -> Option<Intersection<'a>> {
         self.0.iter().find(|x| x.t > 0.0).copied()
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
     }
 }
 
