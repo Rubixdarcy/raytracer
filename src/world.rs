@@ -33,8 +33,35 @@ impl World {
         Self { objects, lights }
     }
 
-    fn intersect(&self, ray: Ray) -> Intersections {
-        todo!();
+    fn intersect<'a>(&'a self, ray: Ray, xs: &mut Intersections<'a>) {
+        for obj in self.objects.iter() {
+            obj.intersect(ray, xs);
+        }
+    }
+
+    // Given world and intersection computations calculate colour
+    fn shade_hit<'a>(&'a self, comps: Computations<'a>) -> Color {
+        comps.object.material.lighting(
+            self.lights[0],
+            comps.point,
+            comps.eyev,
+            comps.normalv,
+        )
+    }
+
+    pub fn color_at<'a>(&'a self, ray: Ray, xs: &mut Intersections<'a>) -> Color {
+        for object in self.objects.iter() {
+            object.intersect(ray, xs);
+        }
+
+        let hit = match xs.hit() {
+            None => return Color::BLACK,
+            Some(h) => h,
+        };
+
+        let comps = hit.prepare_computations(ray);
+
+        return self.shade_hit(comps);
     }
 }
 
@@ -69,8 +96,9 @@ mod test {
     #[test]
     fn world_intersect_ray() {
         let w = World::simple();
+        let mut xs = Intersections::empty();
         let ray = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        let xs = w.intersect(ray);
+        w.intersect(ray, &mut xs);
 
         assert_eq!(xs.len(), 4);
         assert_eq!(xs[0].t, 4.0);
@@ -78,45 +106,58 @@ mod test {
         assert_eq!(xs[2].t, 5.5);
         assert_eq!(xs[3].t, 6.0);
     }
+
+    #[test]
+    fn shade_intersection() {
+        let w = World::simple();
+        let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = w.objects[0];
+        let i = Intersection::new(4.0, &shape);
+        let comps = i.prepare_computations(r);
+        assert_eq!(w.shade_hit(comps), color_rgb!(0.38066, 0.47583, 0.2855));
+    }
+
+    #[test]
+    fn shade_intersection_from_inside() {
+        let mut w = World::simple();
+        w.lights[0] = Light::new(point(0.0, 0.25, 0.0), color_rgb!(1.0, 1.0, 1.0));
+        let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
+        let shape = w.objects[1];
+        let i = Intersection::new(0.5, &shape);
+        let comps = i.prepare_computations(r);
+        assert_eq!(w.shade_hit(comps), color_rgb!(0.90498, 0.90498, 0.90498));
+    }
+    
+    #[test]
+    fn color_when_a_ray_misses() {
+        let w = World::simple();
+        let mut xs = Intersections::empty();
+        let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0));
+        assert_eq!(w.color_at(r, &mut xs), Color::BLACK);
+    }
+
+    #[test]
+    fn color_when_a_ray_hits() {
+        let w = World::simple();
+        let mut xs = Intersections::empty();
+        let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        assert_eq!(w.color_at(r, &mut xs), color_rgb!(0.38066, 0.47583, 0.2855));
+    }
+
+    #[test]
+    fn color_with_intersection_behind_ray() {
+        let mut w = World::simple();
+        for obj in w.objects.iter_mut() {
+            obj.material.ambient = 1.0;
+        }
+        let mut xs = Intersections::empty();
+        let r = Ray::new(point(0.0, 0.0, 0.75), vector(0.0, 0.0, -1.0));
+        assert_eq!(w.color_at(r, &mut xs), w.objects[1].material.color);
+    }
 }
 
 /*
 Feature: World
-Scenario: Intersect a world with a ray
-  Given w â† default_world()
-    And r â† ray(point(0, 0, -5), vector(0, 0, 1))
-  When xs â† intersect_world(w, r)
-  Then xs.count = 4
-    And xs[0].t = 4
-    And xs[1].t = 4.5
-    And xs[2].t = 5.5
-    And xs[3].t = 6
-
-Scenario: Shading an intersection
-  Given w â† default_world()
-    And r â† ray(point(0, 0, -5), vector(0, 0, 1))
-    And shape â† the first object in w
-    And i â† intersection(4, shape)
-  When comps â† prepare_computations(i, r)
-    And c â† shade_hit(w, comps)
-  Then c = color(0.38066, 0.47583, 0.2855)
-
-Scenario: Shading an intersection from the inside
-  Given w â† default_world()
-    And w.light â† point_light(point(0, 0.25, 0), color(1, 1, 1))
-    And r â† ray(point(0, 0, 0), vector(0, 0, 1))
-    And shape â† the second object in w
-    And i â† intersection(0.5, shape)
-  When comps â† prepare_computations(i, r)
-    And c â† shade_hit(w, comps)
-  Then c = color(0.90498, 0.90498, 0.90498)
-
-Scenario: The color when a ray misses
-  Given w â† default_world()
-    And r â† ray(point(0, 0, -5), vector(0, 1, 0))
-  When c â† color_at(w, r)
-  Then c = color(0, 0, 0)
-
 Scenario: The color when a ray hits
   Given w â† default_world()
     And r â† ray(point(0, 0, -5), vector(0, 0, 1))

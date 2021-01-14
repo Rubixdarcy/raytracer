@@ -13,6 +13,33 @@ impl<'a> Intersection<'a> {
     pub fn new(t: f32, object: &'a Sphere) -> Self {
         Self { t, object }
     }
+
+    pub fn prepare_computations(self, ray: Ray) -> Computations<'a> {
+        let t = self.t;
+        let object = self.object;
+        let point = ray.at(t);
+        let eyev = -ray.direction;
+
+        let mut inside = false;
+        let mut normalv = object.normal_at(point);
+
+        if normalv * eyev < 0.0 {
+            inside = true;
+            normalv = -normalv;
+        }
+
+        Computations { t, object, point, eyev, normalv, inside }
+    }
+}
+
+#[derive(Clone, Debug, Copy, PartialEq)]
+pub struct Computations<'a> {
+    pub t: f32,
+    pub object: &'a Sphere,
+    pub point: T4,
+    pub eyev: T4,
+    pub normalv: T4,
+    pub inside: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -32,7 +59,12 @@ impl<'a> std::ops::Index<usize> for Intersections<'a> {
 
 impl<'a> std::iter::Extend<Intersection<'a>> for Intersections<'a> {
     fn extend<T: IntoIterator<Item = Intersection<'a>>>(&mut self, iter: T) {
+        let l0 = self.0.len();
         self.0.extend(iter);
+        let l1 = self.0.len();
+        if l0 != l1 {
+            self.0.sort_unstable_by(|x, y| x.t.partial_cmp(&y.t).unwrap());
+        }
     }
 }
 
@@ -103,44 +135,50 @@ mod test {
         let i4 = Intersection::new(2.0, &s);
         assert_eq!(Intersections::new(&[i1, i2, i3, i4]).hit(), Some(i4));
     }
+
+    #[test]
+    fn precomputing_intersection_state() {
+        let ray = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = Sphere::default();
+        let i = Intersection::new(4.0, &shape);
+        let comps = i.prepare_computations(ray);
+
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.object, i.object);
+        assert_eq!(comps.point, point(0.0, 0.0, -1.0));
+        assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
+        assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
+    }
+
+    #[test]
+    fn hit_intersection_outside() {
+        let ray = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = Sphere::default();
+        let i = Intersection::new(4.0, &shape);
+        let comps = i.prepare_computations(ray);
+        assert_eq!(comps.inside, false);
+    }
+
+    #[test]
+    fn hit_intersection_inside() {
+        let ray = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
+        let shape = Sphere::default();
+        let i = Intersection::new(1.0, &shape);
+        let comps = i.prepare_computations(ray);
+        assert_eq!(comps.point, point(0.0, 0.0, 1.0));
+        assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
+        assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
+        assert_eq!(comps.inside, true);
+    }
 }
 /*
 Feature: Intersections
-Scenario: Precomputing the state of an intersection
-  Given r â† ray(point(0, 0, -5), vector(0, 0, 1))
-    And shape â† sphere()
-    And i â† intersection(4, shape)
-  When comps â† prepare_computations(i, r)
-  Then comps.t = i.t
-    And comps.object = i.object
-    And comps.point = point(0, 0, -1)
-    And comps.eyev = vector(0, 0, -1)
-    And comps.normalv = vector(0, 0, -1)
-
 Scenario: Precomputing the reflection vector
   Given shape â† plane()
     And r â† ray(point(0, 1, -1), vector(0, -âˆš2/2, âˆš2/2)) 
     And i â† intersection(âˆš2, shape)                      
   When comps â† prepare_computations(i, r)
   Then comps.reflectv = vector(0, âˆš2/2, âˆš2/2)                
-
-Scenario: The hit, when an intersection occurs on the outside
-  Given r â† ray(point(0, 0, -5), vector(0, 0, 1))
-    And shape â† sphere()
-    And i â† intersection(4, shape)
-  When comps â† prepare_computations(i, r)
-  Then comps.inside = false
-
-Scenario: The hit, when an intersection occurs on the inside
-  Given r â† ray(point(0, 0, 0), vector(0, 0, 1))
-    And shape â† sphere()
-    And i â† intersection(1, shape)
-  When comps â† prepare_computations(i, r)
-  Then comps.point = point(0, 0, 1)
-    And comps.eyev = vector(0, 0, -1)
-    And comps.inside = true
-      # normal would have been (0, 0, 1), but is inverted!
-    And comps.normalv = vector(0, 0, -1)
 
 Scenario: The hit should offset the point
   Given r â† ray(point(0, 0, -5), vector(0, 0, 1))

@@ -45,9 +45,24 @@ pub fn shearing(xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> M4 {
             0.0, 0.0, 0.0, 1.0,)
 }
 
+pub fn view_transform(from: T4, to: T4, up: T4) -> M4 {
+    let forward = (to - from).normalize();
+    let left = forward.cross(up.normalize());
+    let true_up = left.cross(forward);
+
+    let orientation = matrix4(
+        left.x,     left.y,     left.z,     0.0,
+        true_up.x,  true_up.y,  true_up.z,  0.0,
+        -forward.x, -forward.y, -forward.z, 0.0,
+        0.0,        0.0,        0.0,        1.0
+    );
+    return orientation * translation(-from.x, -from.y, -from.z);
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_prelude::*;
     use std::f32::consts::{FRAC_1_SQRT_2, FRAC_PI_2, FRAC_PI_4};
 
     //macro_rules! assert_approx_eq {
@@ -143,6 +158,38 @@ mod test {
 
         assert_eq!((c * b * a) * p, (c * (b * (a * p))));
         assert_eq!((c * b * a) * p, point(15.0, 0.0, 7.0));
+    }
+
+    #[test]
+    fn view_transform_default_orientation() {
+        assert_eq!(view_transform(point(0.0, 0.0, 0.0), point(0.0, 0.0, -1.0), vector(0.0, 1.0, 0.0)),
+                   M4::IDENTITY);
+
+    }
+
+    #[test]
+    fn view_transform_positive_z() {
+        assert_eq!(view_transform(point(0.0, 0.0, 0.0), point(0.0, 0.0, 1.0), vector(0.0, 1.0, 0.0)),
+                   scaling(-1.0, 1.0, -1.0));
+
+    }
+
+    #[test]
+    fn view_transform_moves_the_world() {
+        assert_eq!(view_transform(point(0.0, 0.0, 8.0), point(0.0, 0.0, 0.0), vector(0.0, 1.0, 0.0)),
+                   translation(0.0, 0.0, -8.0));
+
+    }
+    
+    #[test]
+    fn view_transform_arbitary_transform() {
+        assert_eq!(view_transform(point(1.0, 3.0, 2.0), point(4.0, -2.0, 8.0), vector(1.0, 1.0, 0.0)),
+                   parse_matrix4("
+                       | -0.50709 | 0.50709 |  0.67612 | -2.36643 |
+                       |  0.76772 | 0.60609 |  0.12122 | -2.82843 |
+                       | -0.35857 | 0.59761 | -0.71714 |  0.00000 |
+                       |  0.00000 | 0.00000 |  0.00000 |  1.00000 |
+                   "));
     }
 }
 /*

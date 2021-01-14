@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use std::iter;
 
 #[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Sphere {

@@ -612,13 +612,7 @@ impl M4 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use nom::{
-        IResult,
-        combinator::{map_res, map},
-        sequence::{preceded},
-        multi::{many1},
-        bytes::complete::{take_while1},
-    };
+    use crate::test_prelude::*;
 
     #[test]
     fn matrix_eq_identical() {
@@ -895,21 +889,5 @@ mod test {
         let d = c * b.inverse();
 
         assert_eq!(d, a);
-    }
-
-    fn parse_matrix4(i: &str) -> M4 {
-        map(many1(preceded(take_while1(|b| !num_char(b)), num)),
-            |v| matrix4(v[0], v[1], v[2], v[3],
-                        v[4], v[5], v[6], v[7],
-                        v[8], v[9], v[10], v[11],
-                        v[12], v[13], v[14], v[15]))(i).unwrap().1
-    }
-
-    fn num(i: &str) -> IResult<&str, f32> {
-        map_res(take_while1(num_char), |s: &str| s.parse::<f32>())(i)
-    }
-
-    fn num_char(c: char) -> bool {
-        ('0' <= c && c <= '9') || c == '.' || c == '-'
     }
 }

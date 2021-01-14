@@ -92,6 +92,14 @@ impl std::ops::Neg for T4 {
 }
 
 impl T4 {
+
+    pub const ZERO: Self = T4 { x: 0.0, y: 0.0, z: 0.0, w: 0.0, };
+
+    pub const EX: Self = T4 { x: 1.0, y: 0.0, z: 0.0, w: 0.0, };
+    pub const EY: Self = T4 { x: 0.0, y: 1.0, z: 0.0, w: 0.0, };
+    pub const EZ: Self = T4 { x: 0.0, y: 0.0, z: 1.0, w: 0.0, };
+
+
     pub fn is_point(self) -> bool {
         approx_eq!(f32, self.w, 1f32, epsilon = 0.00001)
     }
