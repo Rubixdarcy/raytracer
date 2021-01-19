@@ -11,6 +11,11 @@ pub mod material;
 pub mod world;
 pub mod camera;
 
+pub mod consts {
+    pub const EPSILON: f32 = 0.00001;
+    pub const SHADOW_SHIFT_LENGTH: f32 = EPSILON * 500.0;
+}
+
 pub mod prelude {
     pub use crate::{color_rgb};
     pub use crate::tuple::{tuple, point, vector, T4};

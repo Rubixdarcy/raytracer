@@ -5,9 +5,14 @@ use std::f32::consts::FRAC_PI_4;
 
 // const WIDTH: usize = 100;
 // const HEIGHT: usize = 50;
-// const FOV: f32 = FRAC_PI_3;
+
+// const WIDTH: usize = 640;
+// const HEIGHT: usize = 480;
+
 const WIDTH: usize = 1920;
 const HEIGHT: usize = 1080;
+
+
 const FOV: f32 = FRAC_PI_3;
 
 fn main() {
@@ -33,7 +38,7 @@ fn main() {
         transform: translation(0.0, 0.0, 5.0)
                    * rotation_y(FRAC_PI_4)
                    * rotation_x(FRAC_PI_2)
-                   * scaling(10.0, 0.01, 10.0),
+                   * scaling(7.0, 0.01, 7.0),
         material: floor.material,
         ..Sphere::default()
     };

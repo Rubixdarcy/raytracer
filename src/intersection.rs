@@ -23,12 +23,14 @@ impl<'a> Intersection<'a> {
         let mut inside = false;
         let mut normalv = object.normal_at(point);
 
+        let over_point = point + crate::consts::SHADOW_SHIFT_LENGTH * normalv;
+
         if normalv * eyev < 0.0 {
             inside = true;
             normalv = -normalv;
         }
 
-        Computations { t, object, point, eyev, normalv, inside }
+        Computations { t, object, point, over_point, eyev, normalv, inside }
     }
 }
 
@@ -37,6 +39,7 @@ pub struct Computations<'a> {
     pub t: f32,
     pub object: &'a Sphere,
     pub point: T4,
+    pub over_point: T4,
     pub eyev: T4,
     pub normalv: T4,
     pub inside: bool,
@@ -169,6 +172,19 @@ mod test {
         assert_eq!(comps.eyev, vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normalv, vector(0.0, 0.0, -1.0));
         assert_eq!(comps.inside, true);
+    }
+
+    #[test]
+    fn hit_should_offset_point() {
+        let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
+        let shape = Sphere {
+            transform: translation(0.0, 0.0, 1.0),
+            ..Sphere::default()
+        };
+        let i = Intersection::new(5.0, &shape);
+        let comps = i.prepare_computations(r);
+        assert!(comps.over_point.z < -crate::consts::SHADOW_SHIFT_LENGTH / 2.0);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }
 /*

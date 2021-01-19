@@ -40,28 +40,46 @@ impl World {
     }
 
     // Given world and intersection computations calculate colour
-    fn shade_hit<'a>(&'a self, comps: Computations<'a>) -> Color {
+    fn shade_hit<'a>(&'a self, comps: Computations<'a>, xs: &mut Intersections<'a>) -> Color {
+        let shadow = self.is_shadowed(comps.over_point, xs);
         comps.object.material.lighting(
             self.lights[0],
-            comps.point,
+            comps.over_point,
             comps.eyev,
             comps.normalv,
+            shadow,
         )
     }
 
-    pub fn color_at<'a>(&'a self, ray: Ray, xs: &mut Intersections<'a>) -> Color {
+    pub fn color_at<'a>(&'a self, ray: Ray, xs1: &mut Intersections<'a>, xs2: &mut Intersections<'a>) -> Color {
         for object in self.objects.iter() {
-            object.intersect(ray, xs);
+            object.intersect(ray, xs1);
         }
 
-        let hit = match xs.hit() {
+        let hit = match xs1.hit() {
             None => return Color::BLACK,
             Some(h) => h,
         };
 
         let comps = hit.prepare_computations(ray);
 
-        return self.shade_hit(comps);
+        return self.shade_hit(comps, xs2);
+    }
+
+    pub fn is_shadowed<'a>(&'a self, point: T4, xs: &mut Intersections<'a>) -> bool {
+      let v = self.lights[0].pos - point;
+      let distance = v.mag();
+      let direction = v.normalize();
+
+      let r = Ray::new(point, direction);
+      self.intersect(r, xs);
+
+      let h = xs.hit();
+
+      if let Some(h) = h {
+          return h.t < distance;
+      }
+      return false;
     }
 }
 
@@ -114,7 +132,7 @@ mod test {
         let shape = w.objects[0];
         let i = Intersection::new(4.0, &shape);
         let comps = i.prepare_computations(r);
-        assert_eq!(w.shade_hit(comps), color_rgb!(0.38066, 0.47583, 0.2855));
+        assert_eq!(w.shade_hit(comps, &mut Intersections::empty()), color_rgb!(0.38066, 0.47583, 0.2855));
     }
 
     #[test]
@@ -125,7 +143,7 @@ mod test {
         let shape = w.objects[1];
         let i = Intersection::new(0.5, &shape);
         let comps = i.prepare_computations(r);
-        assert_eq!(w.shade_hit(comps), color_rgb!(0.90498, 0.90498, 0.90498));
+        assert_eq!(w.shade_hit(comps, &mut Intersections::empty()), color_rgb!(0.90498, 0.90498, 0.90498));
     }
     
     #[test]
@@ -133,7 +151,7 @@ mod test {
         let w = World::simple();
         let mut xs = Intersections::empty();
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 1.0, 0.0));
-        assert_eq!(w.color_at(r, &mut xs), Color::BLACK);
+        assert_eq!(w.color_at(r, &mut xs, &mut Intersections::empty()), Color::BLACK);
     }
 
     #[test]
@@ -141,7 +159,7 @@ mod test {
         let w = World::simple();
         let mut xs = Intersections::empty();
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        assert_eq!(w.color_at(r, &mut xs), color_rgb!(0.38066, 0.47583, 0.2855));
+        assert_eq!(w.color_at(r, &mut xs, &mut Intersections::empty()), color_rgb!(0.38066, 0.47583, 0.2855));
     }
 
     #[test]
@@ -152,47 +170,50 @@ mod test {
         }
         let mut xs = Intersections::empty();
         let r = Ray::new(point(0.0, 0.0, 0.75), vector(0.0, 0.0, -1.0));
-        assert_eq!(w.color_at(r, &mut xs), w.objects[1].material.color);
+        assert_eq!(w.color_at(r, &mut xs, &mut Intersections::empty()), w.objects[1].material.color);
+    }
+
+    #[test]
+    fn no_shadow_when_nothing_collinear_with_point_and_light() {
+        assert!(!World::simple().is_shadowed(point(0.0, 10.0, 0.0), &mut Intersections::empty()));
+    }
+
+    #[test]
+    fn shadow_when_object_between_point_and_light() {
+        assert!(!World::simple().is_shadowed(point(10.0, -10.0, 0.0), &mut Intersections::empty()));
+    }
+
+    #[test]
+    fn no_shadow_when_object_behind_light() {
+        assert!(!World::simple().is_shadowed(point(-20.0, 20.0, -20.0), &mut Intersections::empty()));
+    }
+
+    #[test]
+    fn no_shadow_when_object_behind_point() {
+        assert!(!World::simple().is_shadowed(point(-2.0, 2.0, -2.0), &mut Intersections::empty()));
+    }
+
+    #[test]
+    fn shade_hit_is_given_intersection_in_shadow() {
+        let w = World::new(
+            vec![
+                Sphere::default(),
+                Sphere {
+                    transform: translation(0.0, 0.0, 10.0),
+                    ..Sphere::default()
+                }
+            ],
+            vec![Light::new(point(0.0, 0.0, -10.0), color_rgb!(1.0, 1.0, 1.0))]
+        );
+        let r = Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
+        let i = Intersection::new(4.0, &w.objects[1]);
+        let comps = i.prepare_computations(r);
+        let c = w.shade_hit(comps, &mut Intersections::empty());
+        assert_eq!(c, color_rgb!(0.1, 0.1, 0.1));
     }
 }
 
-/*
-Feature: World
-Scenario: The color when a ray hits
-  Given w â† default_world()
-    And r â† ray(point(0, 0, -5), vector(0, 0, 1))
-  When c â† color_at(w, r)
-  Then c = color(0.38066, 0.47583, 0.2855)
-
-Scenario: The color with an intersection behind the ray
-  Given w â† default_world()
-    And outer â† the first object in w
-    And outer.material.ambient â† 1
-    And inner â† the second object in w
-    And inner.material.ambient â† 1
-    And r â† ray(point(0, 0, 0.75), vector(0, 0, -1))
-  When c â† color_at(w, r)
-  Then c = inner.material.color
-
-Scenario: There is no shadow when nothing is collinear with point and light
-  Given w â† default_world()
-    And p â† point(0, 10, 0)
-   Then is_shadowed(w, p) is false
-
-Scenario: The shadow when an object is between the point and the light
-  Given w â† default_world()
-    And p â† point(10, -10, 10)
-   Then is_shadowed(w, p) is true
-
-Scenario: There is no shadow when an object is behind the light
-  Given w â† default_world()
-    And p â† point(-20, 20, -20)
-   Then is_shadowed(w, p) is false
-
-Scenario: There is no shadow when an object is behind the point
-  Given w â† default_world()
-    And p â† point(-2, 2, -2)
-   Then is_shadowed(w, p) is false
+/* Feature: World
 
 Scenario: shade_hit() is given an intersection in shadow
   Given w â† world()

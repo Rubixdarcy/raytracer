@@ -22,13 +22,18 @@ impl Default for Material {
 }
 
 impl Material {
-    pub fn lighting(self, light: Light, pos: T4, eyev: T4, normalv: T4) -> Color {
+    pub fn lighting(self, light: Light, pos: T4, eyev: T4, normalv: T4, in_shadow: bool) -> Color {
         let effective_color = self.color * light.intensity;
-        let lightv = (light.pos - pos).normalize();
-        let light_normal_cos = lightv * normalv;
 
         // Ambient depends on nothing
         let ambient = effective_color * self.ambient;
+
+        // Shadow means diffuse and specular are 0
+        if in_shadow { return ambient; }
+
+        let lightv = (light.pos - pos).normalize();
+        let light_normal_cos = lightv * normalv;
+
         let (diffuse, specular) = if light_normal_cos < 0.0 {
             (Color::BLACK, Color::BLACK)            
         } else {
@@ -72,7 +77,7 @@ mod test {
         let eye = vector(0.0, 0.0, -1.0);
         let normal = vector(0.0, 0.0, -1.0);
         // Result is ambient + diffuse + specular
-        assert_eq!(m.lighting(light, pos, eye, normal), color_rgb!(1.9, 1.9, 1.9));
+        assert_eq!(m.lighting(light, pos, eye, normal, false), color_rgb!(1.9, 1.9, 1.9));
     }
 
     #[test]
@@ -82,7 +87,7 @@ mod test {
         let eye = vector(0.0, S2O2, -S2O2);
         let normal = vector(0.0, 0.0, -1.0);
         // Result is ambient + diffuse. Specular has dropped to basically zero.
-        assert_eq!(m.lighting(light, pos, eye, normal), color_rgb!(1.0, 1.0, 1.0));
+        assert_eq!(m.lighting(light, pos, eye, normal, false), color_rgb!(1.0, 1.0, 1.0));
     }
 
     #[test]
@@ -94,7 +99,7 @@ mod test {
         // Specular is basically zero. Diffuse is reduced to proportion S2O2 because
         // of the angle between the light and the normal
         // result = ambient + diffuse * S2O2
-        assert_eq!(m.lighting(light, pos, eye, normal), color_rgb!(0.7364, 0.7364, 0.7364));
+        assert_eq!(m.lighting(light, pos, eye, normal, false), color_rgb!(0.7364, 0.7364, 0.7364));
     }
 
     #[test]
@@ -107,7 +112,7 @@ mod test {
         // of the angle between the light and the normal
         // result = ambient + diffuse * S2O2 + specular
         //assert_eq!(m.lighting(light, pos, eye, normal), color_rgb!(1.6364, 1.6364, 1.6364));
-        assert_eq!(m.lighting(light, pos, eye, normal), color_rgb!(1.63639, 1.63639, 1.63639));
+        assert_eq!(m.lighting(light, pos, eye, normal, false), color_rgb!(1.63639, 1.63639, 1.63639));
     }
 
     #[test]
@@ -117,7 +122,17 @@ mod test {
         let eye = vector(0.0, 0.0, -1.0);
         let normal = vector(0.0, 0.0, -1.0);
         // Result is ambient
-        assert_eq!(m.lighting(light, pos, eye, normal), color_rgb!(0.1, 0.1, 0.1));
+        assert_eq!(m.lighting(light, pos, eye, normal, false), color_rgb!(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn lighting_with_surface_in_shadow() {
+        let (m, pos) = lighting_defaults();
+        let light = Light::new(point(0.0, 0.0, -10.0), color_rgb!(1.0, 1.0, 1.0));
+        let eye = vector(0.0, 0.0, -1.0);
+        let normal = vector(0.0, 0.0, -1.0);
+        // Result is ambient + diffuse + specular
+        assert_eq!(m.lighting(light, pos, eye, normal, true), color_rgb!(0.1, 0.1, 0.1));
     }
 
     fn lighting_defaults() -> (Material, T4) {
@@ -140,49 +155,6 @@ Scenario: Transparency and Refractive Index for the default material
   Given m â† material()
   Then m.transparency = 0.0
     And m.refractive_index = 1.0
-
-Scenario: Lighting with the eye between the light and the surface
-  Given eyev â† vector(0, 0, -1)
-    And normalv â† vector(0, 0, -1)
-    And light â† point_light(point(0, 0, -10), color(1, 1, 1))
-  When result â† lighting(m, light, position, eyev, normalv)
-  Then result = color(1.9, 1.9, 1.9)
-
-Scenario: Lighting with the eye between light and surface, eye offset 45Â°
-  Given eyev â† vector(0, âˆš2/2, -âˆš2/2)
-    And normalv â† vector(0, 0, -1)
-    And light â† point_light(point(0, 0, -10), color(1, 1, 1))
-  When result â† lighting(m, light, position, eyev, normalv)
-  Then result = color(1.0, 1.0, 1.0)
-
-Scenario: Lighting with eye opposite surface, light offset 45Â°
-  Given eyev â† vector(0, 0, -1)
-    And normalv â† vector(0, 0, -1)
-    And light â† point_light(point(0, 10, -10), color(1, 1, 1))
-  When result â† lighting(m, light, position, eyev, normalv)
-  Then result = color(0.7364, 0.7364, 0.7364)
-
-Scenario: Lighting with eye in the path of the reflection vector
-  Given eyev â† vector(0, -âˆš2/2, -âˆš2/2)
-    And normalv â† vector(0, 0, -1)
-    And light â† point_light(point(0, 10, -10), color(1, 1, 1))
-  When result â† lighting(m, light, position, eyev, normalv)
-  Then result = color(1.6364, 1.6364, 1.6364)
-
-Scenario: Lighting with the light behind the surface
-  Given eyev â† vector(0, 0, -1)
-    And normalv â† vector(0, 0, -1)
-    And light â† point_light(point(0, 0, 10), color(1, 1, 1))
-  When result â† lighting(m, light, position, eyev, normalv)
-  Then result = color(0.1, 0.1, 0.1)
-
-Scenario: Lighting with the surface in shadow
-  Given eyev â† vector(0, 0, -1)
-    And normalv â† vector(0, 0, -1)
-    And light â† point_light(point(0, 0, -10), color(1, 1, 1))
-    And in_shadow â† true
-  When result â† lighting(m, light, position, eyev, normalv, in_shadow)
-  Then result = color(0.1, 0.1, 0.1)
 
 Scenario: Lighting with a pattern applied
   Given m.pattern â† stripe_pattern(color(1, 1, 1), color(0, 0, 0))

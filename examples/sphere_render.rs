@@ -45,7 +45,7 @@ fn main() {
                 let normalv = sphere.normal_at(hit_pos);
                 
                 let color = intersection.object.material.lighting(
-                    light, hit_pos, eyev, normalv,
+                    light, hit_pos, eyev, normalv, false
                 );
                 canvas.write_pixel(row as i32, col as i32, color);
             }

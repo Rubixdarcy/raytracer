@@ -56,13 +56,15 @@ impl Camera {
 
     pub fn render(self, world: &World) -> Canvas {
         let mut canvas = Canvas::new(self.hsize, self.vsize);
-        let mut xs = Intersections::empty();
+        let mut xs1 = Intersections::empty();
+        let mut xs2 = Intersections::empty();
 
         for row in 0..self.vsize {
             for col in 0..self.hsize {
-                xs.clear();
+                xs1.clear();
+                xs2.clear();
                 let ray = self.ray_for_pixel(col, row);
-                let c = world.color_at(ray, &mut xs);
+                let c = world.color_at(ray, &mut xs1, &mut xs2);
 
                 canvas.write_pixel(col as i32, row as i32, c);
             }
