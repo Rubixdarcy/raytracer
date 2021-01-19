@@ -4,19 +4,19 @@ use crate::prelude::*;
 pub struct Camera {
     pub hsize: usize,
     pub vsize: usize,
-    pub field_of_view: f32,
+    pub field_of_view: f64,
     pub transform: M4,
 
     // Cached calculations
-    pixel_size: f32,
-    half_width: f32,
-    half_height: f32,
+    pixel_size: f64,
+    half_width: f64,
+    half_height: f64,
 }
 
 impl Camera {
-    pub fn new(hsize: usize, vsize: usize, field_of_view: f32, transform: M4) -> Self {
+    pub fn new(hsize: usize, vsize: usize, field_of_view: f64, transform: M4) -> Self {
         let half_view = (field_of_view / 2.0).tan();
-        let aspect = hsize as f32 / vsize as f32;
+        let aspect = hsize as f64 / vsize as f64;
 
         let (half_width, half_height) = if aspect >= 1.0 {
             (half_view, half_view / aspect)
@@ -24,22 +24,22 @@ impl Camera {
             (half_view * aspect, half_view)
         };
 
-        let pixel_size = half_width * 2.0 / hsize as f32;
+        let pixel_size = half_width * 2.0 / hsize as f64;
 
         Self { hsize, vsize, field_of_view, transform, pixel_size, half_width, half_height }
     }
 
-    pub fn simple(hsize: usize, vsize: usize, field_of_view: f32) -> Self {
+    pub fn simple(hsize: usize, vsize: usize, field_of_view: f64) -> Self {
         Self::new(hsize, vsize, field_of_view, M4::IDENTITY)
     }
 
-    pub fn pixel_size(self) -> f32 {
+    pub fn pixel_size(self) -> f64 {
         self.pixel_size
     }
 
     pub fn ray_for_pixel(self, px: usize, py: usize) -> Ray {
-        let xoffset = (px as f32 + 0.5) * self.pixel_size;
-        let yoffset = (py as f32 + 0.5) * self.pixel_size;
+        let xoffset = (px as f64 + 0.5) * self.pixel_size;
+        let yoffset = (py as f64 + 0.5) * self.pixel_size;
 
         let world_x = self.half_width - xoffset;
         let world_y = self.half_height - yoffset;
@@ -77,9 +77,9 @@ impl Camera {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::f32::consts::FRAC_PI_2;
-    use std::f32::consts::FRAC_PI_4;
-    use std::f32::consts::FRAC_1_SQRT_2 as S2O2;
+    use std::f64::consts::FRAC_PI_2;
+    use std::f64::consts::FRAC_PI_4;
+    use std::f64::consts::FRAC_1_SQRT_2 as S2O2;
 
     #[test]
     fn constructing_a_camera() {
@@ -92,12 +92,12 @@ mod test {
 
     #[test]
     fn pixel_size_horizontal_canvas() {
-        assert_eq!(Camera::simple(200, 125, FRAC_PI_2).pixel_size(), 0.01);
+        assert!(float_eq!(Camera::simple(200, 125, FRAC_PI_2).pixel_size(), 0.01));
     }
 
     #[test]
     fn pixel_size_vertical_canvas() {
-        assert_eq!(Camera::simple(125, 200, FRAC_PI_2).pixel_size(), 0.01);
+        assert!(float_eq!(Camera::simple(125, 200, FRAC_PI_2).pixel_size(), 0.01));
     }
     
     #[test]

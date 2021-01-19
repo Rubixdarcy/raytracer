@@ -161,7 +161,7 @@ mod test {
     #[test]
     fn sphere_normal() {
         let s = Sphere::default();
-        let s3_o3 = 1f32 / 3f32.sqrt();
+        let s3_o3 = 1f64 / 3f64.sqrt();
         assert_eq!(s.normal_at(point(1.0, 0.0, 0.0)), vector(1.0, 0.0, 0.0));
         assert_eq!(s.normal_at(point(0.0, 1.0, 0.0)), vector(0.0, 1.0, 0.0));
         assert_eq!(s.normal_at(point(0.0, 0.0, 1.0)), vector(0.0, 0.0, 1.0));
@@ -179,8 +179,8 @@ mod test {
 
     #[test]
     fn sphere_normal_transformed() {
-        use std::f32::consts::PI;
-        use std::f32::consts::FRAC_1_SQRT_2 as S2O2;
+        use std::f64::consts::PI;
+        use std::f64::consts::FRAC_1_SQRT_2 as S2O2;
 
         let m = scaling(1.0, 0.5, 1.0) * rotation_z(PI / 5.0);
         let s = Sphere::from_transform(m);

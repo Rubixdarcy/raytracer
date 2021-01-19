@@ -1,20 +1,20 @@
 use crate::prelude::*;
 
-pub fn translation(x: f32, y: f32, z: f32) -> M4 {
+pub fn translation(x: f64, y: f64, z: f64) -> M4 {
     matrix4(1.0, 0.0, 0.0, x,
             0.0, 1.0, 0.0, y,
             0.0, 0.0, 1.0, z,
             0.0, 0.0, 0.0, 1.0,)
 }
 
-pub fn scaling(x: f32, y: f32, z: f32) -> M4 {
+pub fn scaling(x: f64, y: f64, z: f64) -> M4 {
     matrix4(x,   0.0, 0.0, 0.0,
             0.0, y,   0.0, 0.0,
             0.0, 0.0, z,   0.0,
             0.0, 0.0, 0.0, 1.0,)
 }
 
-pub fn rotation_x(theta: f32) -> M4 {
+pub fn rotation_x(theta: f64) -> M4 {
     let (sin, cos) = theta.sin_cos();
     matrix4(1.0, 0.0, 0.0,  0.0,
             0.0, cos, -sin, 0.0,
@@ -22,7 +22,7 @@ pub fn rotation_x(theta: f32) -> M4 {
             0.0, 0.0, 0.0,  1.0)
 }
 
-pub fn rotation_y(theta: f32) -> M4 {
+pub fn rotation_y(theta: f64) -> M4 {
     let (sin, cos) = theta.sin_cos();
     matrix4(cos,  0.0, sin, 0.0,
             0.0,  1.0, 0.0, 0.0,
@@ -30,7 +30,7 @@ pub fn rotation_y(theta: f32) -> M4 {
             0.0,  0.0, 0.0, 1.0,)
 }
 
-pub fn rotation_z(theta: f32) -> M4 {
+pub fn rotation_z(theta: f64) -> M4 {
     let (sin, cos) = theta.sin_cos();
     matrix4(cos, -sin, 0.0, 0.0,
             sin, cos,  0.0, 0.0,
@@ -38,7 +38,7 @@ pub fn rotation_z(theta: f32) -> M4 {
             0.0, 0.0,  0.0, 1.0,)
 }
 
-pub fn shearing(xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> M4 {
+pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> M4 {
     matrix4(1.0, xy,  xz,  0.0,
             yx,  1.0, yz,  0.0,
             zx,  zy,  1.0, 0.0,
@@ -63,10 +63,10 @@ pub fn view_transform(from: T4, to: T4, up: T4) -> M4 {
 mod test {
     use super::*;
     use crate::test_prelude::*;
-    use std::f32::consts::{FRAC_1_SQRT_2, FRAC_PI_2, FRAC_PI_4};
+    use std::f64::consts::{FRAC_1_SQRT_2, FRAC_PI_2, FRAC_PI_4};
 
     //macro_rules! assert_approx_eq {
-    //    ($x:expr, $y:expr)  => (assert!(approx_eq!(f32, $x, $y, epsilon = 0.00001)))
+    //    ($x:expr, $y:expr)  => (assert!(approx_eq!(f64, $x, $y, epsilon = 0.00001)))
     //}
 
     #[test]

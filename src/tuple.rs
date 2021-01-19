@@ -1,19 +1,19 @@
-use float_cmp::approx_eq;
+use crate::prelude::*;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct T4 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub w: f64,
 }
 
 impl PartialEq for T4 {
     fn eq(&self, other: &Self) -> bool {
-        approx_eq!(f32, self.x, other.x, epsilon = 0.00001)
-        && approx_eq!(f32, self.y, other.y, epsilon = 0.00001)
-        && approx_eq!(f32, self.z, other.z, epsilon = 0.00001)
-        && approx_eq!(f32, self.w, other.w, epsilon = 0.00001)
+        float_eq!(self.x, other.x)
+        && float_eq!(self.y, other.y)
+        && float_eq!(self.z, other.z)
+        && float_eq!(self.w, other.w)
     }
 }
 
@@ -46,16 +46,16 @@ impl std::ops::Sub for T4 {
 }
 
 impl std::ops::Mul for T4 {
-    type Output = f32;
-    fn mul(self, other: Self) -> f32 {
+    type Output = f64;
+    fn mul(self, other: Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 }
 
-impl std::ops::Mul<f32> for T4 {
+impl std::ops::Mul<f64> for T4 {
     type Output = Self;
 
-    fn mul(self, k: f32) -> Self {
+    fn mul(self, k: f64) -> Self {
         Self {
             x: self.x * k,
             y: self.y * k,
@@ -65,15 +65,15 @@ impl std::ops::Mul<f32> for T4 {
     }
 }
 
-impl std::ops::Mul<T4> for f32 {
+impl std::ops::Mul<T4> for f64 {
     type Output = T4;
     fn mul(self, t: T4) -> Self::Output { t * self }
 }
 
-impl std::ops::Div<f32> for T4 {
+impl std::ops::Div<f64> for T4 {
     type Output = Self;
 
-    fn div(self, k: f32) -> Self {
+    fn div(self, k: f64) -> Self {
         Self {
             x: self.x / k,
             y: self.y / k,
@@ -101,14 +101,14 @@ impl T4 {
 
 
     pub fn is_point(self) -> bool {
-        approx_eq!(f32, self.w, 1f32, epsilon = 0.00001)
+        float_eq!(self.w, 1f64)
     }
 
     pub fn is_vector(self) -> bool {
-        approx_eq!(f32, self.w, 0f32, epsilon = 0.00001)
+        float_eq!(self.w, 0f64)
     }
 
-    pub fn mag(self) -> f32 {
+    pub fn mag(self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
     }
     
@@ -123,7 +123,7 @@ impl T4 {
         }
     }
 
-    pub fn dot(self, other: Self) -> f32 {
+    pub fn dot(self, other: Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
@@ -138,25 +138,21 @@ impl T4 {
     }
 }
 
-pub fn tuple(x: f32, y: f32, z: f32, w: f32, ) -> T4 {
+pub fn tuple(x: f64, y: f64, z: f64, w: f64, ) -> T4 {
     T4 { x, y, z, w, }
 }
 
-pub fn point(x: f32, y: f32, z: f32,) -> T4 {
+pub fn point(x: f64, y: f64, z: f64,) -> T4 {
     T4 { x, y, z, w: 1.0}
 }
 
-pub fn vector(x: f32, y: f32, z: f32,) -> T4 {
+pub fn vector(x: f64, y: f64, z: f64,) -> T4 {
     T4 { x, y, z, w: 0.0}
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    
-    fn appr_eq(l: f32, r: f32) -> bool {
-        approx_eq!(f32, l, r, epsilon = 0.00001)
-    }
 
     #[test]
     fn tuple_w_1_is_point() {
@@ -234,27 +230,27 @@ mod test {
 
     #[test]
     fn vector_mag1() {
-        assert!(appr_eq(vector(1.0, 0.0, 0.0).mag(), 1.0))
+        assert!(float_eq!(vector(1.0, 0.0, 0.0).mag(), 1.0))
     }
 
     #[test]
     fn vector_mag2() {
-        assert!(appr_eq(vector(0.0, 1.0, 0.0).mag(), 1.0))
+        assert!(float_eq!(vector(0.0, 1.0, 0.0).mag(), 1.0))
     }
 
     #[test]
     fn vector_mag3() {
-        assert!(appr_eq(vector(0.0, 0.0, 1.0).mag(), 1.0))
+        assert!(float_eq!(vector(0.0, 0.0, 1.0).mag(), 1.0))
     }
 
     #[test]
     fn vector_mag4() {
-        assert!(appr_eq(vector(1.0, 2.0, 3.0).mag(), (14f32).sqrt()))
+        assert!(float_eq!(vector(1.0, 2.0, 3.0).mag(), (14f64).sqrt()))
     }
 
     #[test]
     fn vector_mag5() {
-        assert!(appr_eq(vector(-1.0, -2.0, -3.0).mag(), (14f32).sqrt()))
+        assert!(float_eq!(vector(-1.0, -2.0, -3.0).mag(), (14f64).sqrt()))
     }
 
     #[test]
@@ -269,12 +265,12 @@ mod test {
 
     #[test]
     fn vector_normalize3() {
-        assert!(appr_eq(vector(1.0, 2.0, 3.0).normalize().mag(), 1.0))
+        assert!(float_eq!(vector(1.0, 2.0, 3.0).normalize().mag(), 1.0))
     }
 
     #[test]
     fn vector_dot() {
-        assert!(appr_eq(vector(1.0, 2.0, 3.0).dot(vector(2.0, 3.0, 4.0)), 20.0))
+        assert!(float_eq!(vector(1.0, 2.0, 3.0).dot(vector(2.0, 3.0, 4.0)), 20.0))
     }
 
     #[test]
@@ -284,7 +280,7 @@ mod test {
 
     #[test]
     fn vector_reflect() {
-        use std::f32::consts::FRAC_1_SQRT_2 as S2O2;
+        use std::f64::consts::FRAC_1_SQRT_2 as S2O2;
         assert_eq!(vector(1.0, -1.0, 0.0).reflect(vector(0.0, 1.0, 0.0)),
                    vector(1.0, 1.0, 0.0));
         assert_eq!(vector(0.0, -1.0, 0.0).reflect(vector(S2O2, S2O2, 0.0)),

@@ -64,7 +64,7 @@ impl Canvas {
     }
 }
 
-fn to_ppm_value(x: f32) -> i32 {
+fn to_ppm_value(x: f64) -> i32 {
     ((x * 255.0).round() as i32).max(0).min(255)
 }
 

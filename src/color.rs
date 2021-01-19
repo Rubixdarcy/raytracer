@@ -1,10 +1,10 @@
-use float_cmp::approx_eq;
+use crate::prelude::*;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Color {
-    pub red: f32,
-    pub green: f32,
-    pub blue: f32,
+    pub red: f64,
+    pub green: f64,
+    pub blue: f64,
 }
 
 #[macro_export]
@@ -16,9 +16,9 @@ macro_rules! color_rgb {
 
 impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
-        approx_eq!(f32, self.red, other.red, epsilon = 0.00001)
-        && approx_eq!(f32, self.green, other.green, epsilon = 0.00001)
-        && approx_eq!(f32, self.blue, other.blue, epsilon = 0.00001)
+        float_eq!(self.red, other.red)
+        && float_eq!(self.green, other.green)
+        && float_eq!(self.blue, other.blue)
     }
 }
 
@@ -48,10 +48,10 @@ impl std::ops::Sub for Color {
     }
 }
 
-impl std::ops::Mul<f32> for Color {
+impl std::ops::Mul<f64> for Color {
     type Output = Self;
 
-    fn mul(self, k: f32) -> Self {
+    fn mul(self, k: f64) -> Self {
         Self {
             red: self.red * k,
             green: self.green * k,
@@ -60,7 +60,7 @@ impl std::ops::Mul<f32> for Color {
     }
 }
 
-impl std::ops::Mul<Color> for f32 {
+impl std::ops::Mul<Color> for f64 {
     type Output = Color;
     fn mul(self, t: Color) -> Self::Output { t * self }
 }
@@ -77,10 +77,10 @@ impl std::ops::Mul for Color {
     }
 }
 
-impl std::ops::Div<f32> for Color {
+impl std::ops::Div<f64> for Color {
     type Output = Self;
 
-    fn div(self, k: f32) -> Self {
+    fn div(self, k: f64) -> Self {
         Self {
             red: self.red / k,
             green: self.green / k,
@@ -97,7 +97,7 @@ impl Color {
     pub const WHITE: Self = color_rgb!(1.0, 1.0, 1.0);
 }
 
-pub fn color(red: f32, green: f32, blue: f32) -> Color {
+pub fn color(red: f64, green: f64, blue: f64) -> Color {
     Color { red, green, blue }
 }
 

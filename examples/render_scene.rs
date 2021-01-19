@@ -1,7 +1,7 @@
 use raytracer::prelude::*;
-use std::f32::consts::FRAC_PI_2;
-use std::f32::consts::FRAC_PI_3;
-use std::f32::consts::FRAC_PI_4;
+use std::f64::consts::FRAC_PI_2;
+use std::f64::consts::FRAC_PI_3;
+use std::f64::consts::FRAC_PI_4;
 
 // const WIDTH: usize = 100;
 // const HEIGHT: usize = 50;
@@ -13,7 +13,7 @@ const WIDTH: usize = 1920;
 const HEIGHT: usize = 1080;
 
 
-const FOV: f32 = FRAC_PI_3;
+const FOV: f64 = FRAC_PI_3;
 
 fn main() {
     

@@ -12,8 +12,13 @@ pub mod world;
 pub mod camera;
 
 pub mod consts {
-    pub const EPSILON: f32 = 0.00001;
-    pub const SHADOW_SHIFT_LENGTH: f32 = EPSILON * 500.0;
+    pub const EPSILON: f64 = 0.00001;
+    pub const OVER_POINT_SHIFT_LENGTH: f64 = EPSILON;
+}
+
+#[macro_export]
+macro_rules! float_eq {
+    ( $x:expr, $y:expr ) => { ($x - $y).abs() < crate::consts::EPSILON }
 }
 
 pub mod prelude {
@@ -30,6 +35,7 @@ pub mod prelude {
     pub use crate::material::{Material};
     pub use crate::world::{World};
     pub use crate::camera::{Camera};
+    pub use crate::float_eq;
 }
 
 #[cfg(test)]
@@ -51,8 +57,8 @@ pub mod test_prelude {
                         v[12], v[13], v[14], v[15]))(i).unwrap().1
     }
 
-    fn num(i: &str) -> IResult<&str, f32> {
-        map_res(take_while1(num_char), |s: &str| s.parse::<f32>())(i)
+    fn num(i: &str) -> IResult<&str, f64> {
+        map_res(take_while1(num_char), |s: &str| s.parse::<f64>())(i)
     }
 
     fn num_char(c: char) -> bool {

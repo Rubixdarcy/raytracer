@@ -1,34 +1,33 @@
 use crate::prelude::*;
-use float_cmp::approx_eq;
 
 /////////////////////////////////////////////////////////
 // M2
 /////////////////////////////////////////////////////////
 #[derive(Debug, Copy, Clone, Default)]
 pub struct M2 {
-    pub a00: f32, pub a01: f32,
-    pub a10: f32, pub a11: f32,
+    pub a00: f64, pub a01: f64,
+    pub a10: f64, pub a11: f64,
 }
 
-pub fn matrix2(a00: f32, a01: f32,
-               a10: f32, a11: f32,) -> M2 {
+pub fn matrix2(a00: f64, a01: f64,
+               a10: f64, a11: f64,) -> M2 {
     M2 { a00, a01,
          a10, a11, }
 }
 
 impl PartialEq for M2 {
     fn eq(&self, other: &Self) -> bool {
-           approx_eq!(f32, self.a00, other.a00, epsilon = 0.00001)
-        && approx_eq!(f32, self.a01, other.a01, epsilon = 0.00001)
-        && approx_eq!(f32, self.a10, other.a10, epsilon = 0.00001)
-        && approx_eq!(f32, self.a11, other.a11, epsilon = 0.00001)
+           float_eq!(self.a00, other.a00)
+        && float_eq!(self.a01, other.a01)
+        && float_eq!(self.a10, other.a10)
+        && float_eq!(self.a11, other.a11)
     }
 }
 
 impl Eq for M2 {}
 
 impl std::ops::Index<(usize, usize)> for M2 {
-    type Output = f32;
+    type Output = f64;
     fn index(&self, idx: (usize, usize)) -> &Self::Output {
         match idx {
             (0, 0) => &self.a00,
@@ -100,10 +99,10 @@ impl std::ops::Mul for M2 {
 
 // <no Mul<T4> implementation>
 
-impl std::ops::Mul<f32> for M2 {
+impl std::ops::Mul<f64> for M2 {
     type Output = Self;
 
-    fn mul(self, k: f32) -> Self {
+    fn mul(self, k: f64) -> Self {
         let m = self;
         Self {
             a00: m.a00 * k, a01: m.a01 * k,
@@ -112,7 +111,7 @@ impl std::ops::Mul<f32> for M2 {
     }
 }
 
-impl std::ops::Mul<M2> for f32 {
+impl std::ops::Mul<M2> for f64 {
     
     type Output = M2; 
 
@@ -140,7 +139,7 @@ impl M2 {
         )
     }
 
-    pub fn determinant(self) -> f32 {
+    pub fn determinant(self) -> f64 {
         self.a00 * self.a11 - self.a10 * self.a01
     }
 }
@@ -150,14 +149,14 @@ impl M2 {
 /////////////////////////////////////////////////////////
 #[derive(Debug, Copy, Clone, Default)]
 pub struct M3 {
-    pub a00: f32, pub a01: f32, pub a02: f32,
-    pub a10: f32, pub a11: f32, pub a12: f32,
-    pub a20: f32, pub a21: f32, pub a22: f32,
+    pub a00: f64, pub a01: f64, pub a02: f64,
+    pub a10: f64, pub a11: f64, pub a12: f64,
+    pub a20: f64, pub a21: f64, pub a22: f64,
 }
 
-pub fn matrix3(a00: f32, a01: f32, a02: f32,
-               a10: f32, a11: f32, a12: f32,
-               a20: f32, a21: f32, a22: f32,) -> M3 {
+pub fn matrix3(a00: f64, a01: f64, a02: f64,
+               a10: f64, a11: f64, a12: f64,
+               a20: f64, a21: f64, a22: f64,) -> M3 {
     M3 { a00, a01, a02,
          a10, a11, a12,
          a20, a21, a22, }
@@ -165,22 +164,22 @@ pub fn matrix3(a00: f32, a01: f32, a02: f32,
 
 impl PartialEq for M3 {
     fn eq(&self, other: &Self) -> bool {
-           approx_eq!(f32, self.a00, other.a00, epsilon = 0.00001)
-        && approx_eq!(f32, self.a01, other.a01, epsilon = 0.00001)
-        && approx_eq!(f32, self.a02, other.a02, epsilon = 0.00001)
-        && approx_eq!(f32, self.a10, other.a10, epsilon = 0.00001)
-        && approx_eq!(f32, self.a11, other.a11, epsilon = 0.00001)
-        && approx_eq!(f32, self.a12, other.a12, epsilon = 0.00001)
-        && approx_eq!(f32, self.a20, other.a20, epsilon = 0.00001)
-        && approx_eq!(f32, self.a21, other.a21, epsilon = 0.00001)
-        && approx_eq!(f32, self.a22, other.a22, epsilon = 0.00001)
+           float_eq!(self.a00, other.a00)
+        && float_eq!(self.a01, other.a01)
+        && float_eq!(self.a02, other.a02)
+        && float_eq!(self.a10, other.a10)
+        && float_eq!(self.a11, other.a11)
+        && float_eq!(self.a12, other.a12)
+        && float_eq!(self.a20, other.a20)
+        && float_eq!(self.a21, other.a21)
+        && float_eq!(self.a22, other.a22)
     }
 }
 
 impl Eq for M3 {}
 
 impl std::ops::Index<(usize, usize)> for M3 {
-    type Output = f32;
+    type Output = f64;
     fn index(&self, idx: (usize, usize)) -> &Self::Output {
         match idx {
             (0, 0) => &self.a00,
@@ -269,10 +268,10 @@ impl std::ops::Mul for M3 {
 
 // <no Mul<T4> implementation>
 
-impl std::ops::Mul<f32> for M3 {
+impl std::ops::Mul<f64> for M3 {
     type Output = Self;
 
-    fn mul(self, k: f32) -> Self {
+    fn mul(self, k: f64) -> Self {
         let m = self;
         M3 {
             a00: m.a00 * k, a01: m.a01 * k, a02: m.a02 * k,
@@ -282,7 +281,7 @@ impl std::ops::Mul<f32> for M3 {
     }
 }
 
-impl std::ops::Mul<M3> for f32 {
+impl std::ops::Mul<M3> for f64 {
     
     type Output = M3; 
 
@@ -325,18 +324,18 @@ impl M3 {
         return result;
     }
 
-    pub fn minor(self, row: usize, column: usize) -> f32 {
+    pub fn minor(self, row: usize, column: usize) -> f64 {
         self.submatrix(row, column).determinant()
     }
 
-    pub fn cofactor(self, row: usize, column: usize) -> f32 {
+    pub fn cofactor(self, row: usize, column: usize) -> f64 {
         match (row + column) % 2 {
             0 => self.minor(row, column),
             _ => -self.minor(row, column),
         }
     }
 
-    pub fn determinant(self) -> f32 {
+    pub fn determinant(self) -> f64 {
         self.a00 * self.cofactor(0, 0)
         + self.a01 * self.cofactor(0, 1)
         + self.a02 * self.cofactor(0, 2)
@@ -348,16 +347,16 @@ impl M3 {
 /////////////////////////////////////////////////////////
 #[derive(Debug, Copy, Clone, Default)]
 pub struct M4 {
-    pub a00: f32, pub a01: f32, pub a02: f32, pub a03: f32,
-    pub a10: f32, pub a11: f32, pub a12: f32, pub a13: f32,
-    pub a20: f32, pub a21: f32, pub a22: f32, pub a23: f32,
-    pub a30: f32, pub a31: f32, pub a32: f32, pub a33: f32,
+    pub a00: f64, pub a01: f64, pub a02: f64, pub a03: f64,
+    pub a10: f64, pub a11: f64, pub a12: f64, pub a13: f64,
+    pub a20: f64, pub a21: f64, pub a22: f64, pub a23: f64,
+    pub a30: f64, pub a31: f64, pub a32: f64, pub a33: f64,
 }
 
-pub fn matrix4(a00: f32, a01: f32, a02: f32, a03: f32,
-               a10: f32, a11: f32, a12: f32, a13: f32,
-               a20: f32, a21: f32, a22: f32, a23: f32,
-               a30: f32, a31: f32, a32: f32, a33: f32) -> M4 {
+pub fn matrix4(a00: f64, a01: f64, a02: f64, a03: f64,
+               a10: f64, a11: f64, a12: f64, a13: f64,
+               a20: f64, a21: f64, a22: f64, a23: f64,
+               a30: f64, a31: f64, a32: f64, a33: f64) -> M4 {
     M4 { a00, a01, a02, a03,
          a10, a11, a12, a13,
          a20, a21, a22, a23,
@@ -366,29 +365,29 @@ pub fn matrix4(a00: f32, a01: f32, a02: f32, a03: f32,
 
 impl PartialEq for M4 {
     fn eq(&self, other: &Self) -> bool {
-           approx_eq!(f32, self.a00, other.a00, epsilon = 0.00001)
-        && approx_eq!(f32, self.a01, other.a01, epsilon = 0.00001)
-        && approx_eq!(f32, self.a02, other.a02, epsilon = 0.00001)
-        && approx_eq!(f32, self.a03, other.a03, epsilon = 0.00001)
-        && approx_eq!(f32, self.a10, other.a10, epsilon = 0.00001)
-        && approx_eq!(f32, self.a11, other.a11, epsilon = 0.00001)
-        && approx_eq!(f32, self.a12, other.a12, epsilon = 0.00001)
-        && approx_eq!(f32, self.a13, other.a13, epsilon = 0.00001)
-        && approx_eq!(f32, self.a20, other.a20, epsilon = 0.00001)
-        && approx_eq!(f32, self.a21, other.a21, epsilon = 0.00001)
-        && approx_eq!(f32, self.a22, other.a22, epsilon = 0.00001)
-        && approx_eq!(f32, self.a23, other.a23, epsilon = 0.00001)
-        && approx_eq!(f32, self.a30, other.a30, epsilon = 0.00001)
-        && approx_eq!(f32, self.a31, other.a31, epsilon = 0.00001)
-        && approx_eq!(f32, self.a32, other.a32, epsilon = 0.00001)
-        && approx_eq!(f32, self.a33, other.a33, epsilon = 0.00001)
+           float_eq!(self.a00, other.a00)
+        && float_eq!(self.a01, other.a01)
+        && float_eq!(self.a02, other.a02)
+        && float_eq!(self.a03, other.a03)
+        && float_eq!(self.a10, other.a10)
+        && float_eq!(self.a11, other.a11)
+        && float_eq!(self.a12, other.a12)
+        && float_eq!(self.a13, other.a13)
+        && float_eq!(self.a20, other.a20)
+        && float_eq!(self.a21, other.a21)
+        && float_eq!(self.a22, other.a22)
+        && float_eq!(self.a23, other.a23)
+        && float_eq!(self.a30, other.a30)
+        && float_eq!(self.a31, other.a31)
+        && float_eq!(self.a32, other.a32)
+        && float_eq!(self.a33, other.a33)
     }
 }
 
 impl Eq for M4 {}
 
 impl std::ops::Index<(usize, usize)> for M4 {
-    type Output = f32;
+    type Output = f64;
     fn index(&self, idx: (usize, usize)) -> &Self::Output {
         match idx {
             (0, 0) => &self.a00,
@@ -511,10 +510,10 @@ impl std::ops::Mul<T4> for M4 {
     }
 }
 
-impl std::ops::Mul<f32> for M4 {
+impl std::ops::Mul<f64> for M4 {
     type Output = Self;
 
-    fn mul(self, k: f32) -> Self {
+    fn mul(self, k: f64) -> Self {
         let m = self;
         M4 {
             a00: m.a00 * k, a01: m.a01 * k, a02: m.a02 * k, a03: m.a03 * k,
@@ -525,7 +524,7 @@ impl std::ops::Mul<f32> for M4 {
     }
 }
 
-impl std::ops::Mul<M4> for f32 {
+impl std::ops::Mul<M4> for f64 {
     type Output = M4;
 
     fn mul(self, m: M4) -> M4 {
@@ -570,18 +569,18 @@ impl M4 {
         return result;
     }
 
-    pub fn minor(self, row: usize, column: usize) -> f32 {
+    pub fn minor(self, row: usize, column: usize) -> f64 {
         self.submatrix(row, column).determinant()
     }
 
-    pub fn cofactor(self, row: usize, column: usize) -> f32 {
+    pub fn cofactor(self, row: usize, column: usize) -> f64 {
         match (row + column) % 2 {
             0 => self.minor(row, column),
             _ => -self.minor(row, column),
         }
     }
 
-    pub fn determinant(self) -> f32 {
+    pub fn determinant(self) -> f64 {
         self.a00 * self.cofactor(0, 0)
         + self.a01 * self.cofactor(0, 1)
         + self.a02 * self.cofactor(0, 2)
@@ -589,12 +588,12 @@ impl M4 {
     }
 
     pub fn invertible(self) -> bool {
-        !approx_eq!(f32, self.determinant(), 0.0, epsilon = 0.00001)
+        !float_eq!(self.determinant(), 0.0)
     }
 
     pub fn inverse(self) -> Self {
         let det = self.determinant();
-        if approx_eq!(f32, self.determinant(), 0.0, epsilon = 0.00001) {
+        if float_eq!(self.determinant(), 0.0) {
             panic!("Attempt to compute inverse of non-invertible matrix: {:?}", self);
         }
 

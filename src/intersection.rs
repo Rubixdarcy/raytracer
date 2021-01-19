@@ -1,16 +1,14 @@
 use crate::prelude::*;
-use smallvec::SmallVec;
-use smallvec::smallvec;
 use std::borrow::Borrow;
 
 #[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Intersection<'a> {
-    pub t: f32,
+    pub t: f64,
     pub object: &'a Sphere,
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new(t: f32, object: &'a Sphere) -> Self {
+    pub fn new(t: f64, object: &'a Sphere) -> Self {
         Self { t, object }
     }
 
@@ -23,7 +21,7 @@ impl<'a> Intersection<'a> {
         let mut inside = false;
         let mut normalv = object.normal_at(point);
 
-        let over_point = point + crate::consts::SHADOW_SHIFT_LENGTH * normalv;
+        let over_point = point + crate::consts::OVER_POINT_SHIFT_LENGTH * normalv;
 
         if normalv * eyev < 0.0 {
             inside = true;
@@ -36,7 +34,7 @@ impl<'a> Intersection<'a> {
 
 #[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Computations<'a> {
-    pub t: f32,
+    pub t: f64,
     pub object: &'a Sphere,
     pub point: T4,
     pub over_point: T4,
@@ -46,10 +44,10 @@ pub struct Computations<'a> {
 }
 
 #[derive(Clone, Debug)]
-pub struct Intersections<'a>(SmallVec<[Intersection<'a>; 4]>);
+pub struct Intersections<'a>(Vec<Intersection<'a>>);
 
 impl<'a, T> Borrow<T> for Intersections<'a> where
-        SmallVec<[Intersection<'a>; 4]>: Borrow<T> {
+        Vec<Intersection<'a>>: Borrow<T> {
     fn borrow(&self) -> &T { self.0.borrow() }
 }
 
@@ -72,10 +70,10 @@ impl<'a> std::iter::Extend<Intersection<'a>> for Intersections<'a> {
 }
 
 impl<'a> Intersections<'a> {
-    pub fn empty() -> Self { Self(smallvec![]) }
+    pub fn empty() -> Self { Self(vec![]) }
 
     pub fn new(xs: &[Intersection<'a>]) -> Self {
-        let mut xs: SmallVec<[Intersection<'a>; 4]> = SmallVec::from_slice(xs);
+        let mut xs = xs.to_vec();
         xs.sort_unstable_by(|x, y| x.t.partial_cmp(&y.t).unwrap());
         Self(xs)
     }
@@ -183,7 +181,7 @@ mod test {
         };
         let i = Intersection::new(5.0, &shape);
         let comps = i.prepare_computations(r);
-        assert!(comps.over_point.z < -crate::consts::SHADOW_SHIFT_LENGTH / 2.0);
+        assert!(comps.over_point.z < -crate::consts::OVER_POINT_SHIFT_LENGTH / 2.0);
         assert!(comps.point.z > comps.over_point.z);
     }
 }
