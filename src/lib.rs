@@ -10,6 +10,7 @@ pub mod light;
 pub mod material;
 pub mod world;
 pub mod camera;
+pub mod shape;
 
 pub mod consts {
     pub const EPSILON: f64 = 0.00001;
@@ -35,6 +36,7 @@ pub mod prelude {
     pub use crate::material::{Material};
     pub use crate::world::{World};
     pub use crate::camera::{Camera};
+    pub use crate::shape::{Shape};
     pub use crate::float_eq;
 }
 

@@ -23,10 +23,14 @@ impl Default for Material {
 
 impl Material {
     pub fn lighting(self, light: Light, pos: T4, eyev: T4, normalv: T4, in_shadow: bool) -> Color {
+        // Three different colors are summed in this lighting.
+        // See https://en.wikipedia.org/wiki/Rendering_equation
+        let (ambient, diffuse, specular): (Color, Color, Color);
+
         let effective_color = self.color * light.intensity;
 
         // Ambient depends on nothing
-        let ambient = effective_color * self.ambient;
+        ambient = effective_color * self.ambient;
 
         // Shadow means diffuse and specular are 0
         if in_shadow { return ambient; }
@@ -34,22 +38,22 @@ impl Material {
         let lightv = (light.pos - pos).normalize();
         let light_normal_cos = lightv * normalv;
 
-        let (diffuse, specular) = if light_normal_cos < 0.0 {
-            (Color::BLACK, Color::BLACK)            
+        if light_normal_cos < 0.0 {
+            diffuse = Color::BLACK;
+            specular = Color::BLACK;
         } else {
             // Diffuse depends on lightv and normalv
-            let diffuse = effective_color * (self.diffuse * light_normal_cos);
+            diffuse = effective_color * (self.diffuse * light_normal_cos);
+
             let reflectv = (-lightv).reflect(normalv);
             let reflect_eye_cos = reflectv * eyev;
-
-            let specular = if reflect_eye_cos <= 0.0 {
-                Color::BLACK
+            if reflect_eye_cos <= 0.0 {
+                specular = Color::BLACK
             } else {
                 let factor = reflect_eye_cos.powf(self.shininess);
                 // Specular depends on reflectv and eyev
-                light.intensity * (self.specular * factor)
+                specular = light.intensity * (self.specular * factor)
             };
-            (diffuse, specular)
         };
         return ambient + diffuse + specular;
     }
